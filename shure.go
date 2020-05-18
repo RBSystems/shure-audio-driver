@@ -1,3 +1,5 @@
-package shure
+package main
+
+func main() {}
 
 
