@@ -63,8 +63,6 @@ func (d *Database) GetReceiverAddress(roomID string) (string, error) {
 		return "", err
 	}
 
-	fmt.Printf("test - %d\n", len(resp.Docs))
-
 	//find receiver address
 	for _, dev := range resp.Docs {
 		if hasRole("Receiver", dev) {
