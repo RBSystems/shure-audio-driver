@@ -53,7 +53,6 @@ func readEvents(address string, pub *event.Publisher) error {
 	// make a connection with address
 	control := &shure.AudioControl{
 		Address: address,
-		Port:    "2202",
 	}
 
 	conn, err := control.GetConnection()
