@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/byuoitav/shure-audio-driver/db"
+	"github.com/byuoitav/shure-audio-driver/event"
 	"github.com/byuoitav/shure-audio-library"
 )
 
@@ -26,22 +28,32 @@ func main() {
 
 	}
 
+	pub := &event.Publisher{
+		RoomID:     roomID,
+		HubAddress: os.Getenv("HUB_ADDRESS"),
+		RespCh:     make(chan string, 100),
+	}
+
+	// start waiting to publish events
+	go pub.HandleEvents()
+
 	if len(address) > 0 {
-		// read events on that receiver
-		err = readEvents(address)
+		fmt.Println(address)
+
+		err = readEvents(address, pub)
 		if err != nil {
 			fmt.Printf("failed to read events: %s\n", err.Error())
 			return
 		}
 	}
-	// report error
 	fmt.Printf("there are no receivers in this room\n")
 }
 
-func readEvents(address string) error {
+func readEvents(address string, pub *event.Publisher) error {
 	// make a connection with address
 	control := &shure.AudioControl{
 		Address: address,
+		Port:    "2202",
 	}
 
 	conn, err := control.GetConnection()
@@ -50,17 +62,17 @@ func readEvents(address string) error {
 	}
 
 	for {
-		// wait for events to come in from that device
 		data, err := conn.ReadEvent()
-		if err != nil {
-
+		if err == io.EOF {
+			fmt.Println("got an eof")
+			conn.Conn.Close()
+			conn, err = control.GetConnection()
 		}
-		fmt.Printf(data)
+		if err != nil {
+			return err
+		}
 
-		// process data
-
-		// push events to event hub
-
+		//send event to be published
+		pub.RespCh <- data
 	}
-	return nil
 }
