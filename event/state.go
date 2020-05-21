@@ -3,10 +3,10 @@ package event
 type state int
 
 const (
-	interference state = iota + 1
-	power
-	battery
-	unknown
+	Interference state = iota + 1
+	Power
+	Battery
+	Unknown
 )
 
 var states = [...]string{

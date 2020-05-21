@@ -24,34 +24,34 @@ const (
 	bCharge  = "BATT_CHARGE"
 	bBars    = "BATT_BARS"
 
-	flag = "ignored"
+	FLAG = "ignored"
 )
 
-type shureEvent struct {
+type ShureEvent struct {
 	Type       state
 	DeviceName string
 	E          *events.Event
 }
 
-func (e *shureEvent) SetEventType(resp string) {
-	if strings.Contains(resp, interference.String()) {
-		e.Type = interference
-	} else if strings.Contains(resp, power.String()) {
-		e.Type = power
-	} else if strings.Contains(resp, battery.String()) {
-		e.Type = battery
+func (e *ShureEvent) SetEventType(resp string) {
+	if strings.Contains(resp, Interference.String()) {
+		e.Type = Interference
+	} else if strings.Contains(resp, Power.String()) {
+		e.Type = Power
+	} else if strings.Contains(resp, Battery.String()) {
+		e.Type = Battery
 	} else {
-		e.Type = unknown
+		e.Type = Unknown
 	}
 }
 
-func (e *shureEvent) FillEventInfo(resp string) {
+func (e *ShureEvent) FillEventInfo(resp string) {
 	var err error
-	if e.Type == interference {
+	if e.Type == Interference {
 		err = fillInterference(resp, e.E)
-	} else if e.Type == power {
+	} else if e.Type == Power {
 		err = fillPower(resp, e.E)
-	} else if e.Type == battery {
+	} else if e.Type == Battery {
 		err = fillBattery(resp, e.E)
 	} else {
 		// this should never be reached
@@ -106,7 +106,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch batteryCycles {
 		case "65535":
-			event.Value = flag
+			event.Value = FLAG
 		case "":
 			event.Value = "0"
 		default:
@@ -121,7 +121,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch runTime {
 		case "65535":
-			event.Value = flag
+			event.Value = FLAG
 		case "65534":
 			event.Value = "calculating"
 		case "":
@@ -155,7 +155,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch percentage {
 		case 255:
-			event.Value = flag
+			event.Value = FLAG
 		case 254:
 			event.Value = "calculating"
 		default:
@@ -175,7 +175,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch bars {
 		case 255:
-			event.Value = flag
+			event.Value = FLAG
 		case 254:
 			event.Value = "calculating"
 		default:
@@ -183,7 +183,7 @@ func fillBattery(resp string, event *events.Event) error {
 		}
 
 	} else {
-		event.Value = flag
+		event.Value = FLAG
 	}
 
 	return nil

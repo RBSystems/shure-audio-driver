@@ -1,4 +1,4 @@
-package event
+package publish
 
 import (
 	"fmt"
@@ -8,10 +8,11 @@ import (
 	"github.com/byuoitav/central-event-system/hub/base"
 	"github.com/byuoitav/central-event-system/messenger"
 	"github.com/byuoitav/common/v2/events"
+	"github.com/byuoitav/shure-audio-driver/event"
 )
 
-//Publisher receives device responses through a channel, parses them, then sends them on to the event hub
-type Publisher struct {
+//EventPublisher receives device responses through a channel, parses them, then sends them on to the event hub
+type EventPublisher struct {
 	RoomID     string
 	HubAddress string
 	RoomSys    string
@@ -20,7 +21,7 @@ type Publisher struct {
 }
 
 //PublishEvents blocks on the response channel until a new response arrives to be published
-func (p *Publisher) PublishEvents() {
+func (p *EventPublisher) PublishEvents() {
 	// start the messenger
 	var err error
 	p.msg, err = messenger.BuildMessenger(p.HubAddress, base.Messenger, 1000)
@@ -33,26 +34,26 @@ func (p *Publisher) PublishEvents() {
 	}
 }
 
-func (p *Publisher) handle(resp string) {
-	event, err := p.parseResponse(resp)
+func (p *EventPublisher) handle(resp string) {
+	e, err := p.parseResponse(resp)
 	if err != nil {
 		// event is invalid, skip it
 		return
 	}
 
 	//fill in event
-	event.FillEventInfo(resp)
+	e.FillEventInfo(resp)
 
 	// publish event
-	if event.E.Value != flag {
-		err = p.publish(event)
+	if e.E.Value != event.FLAG {
+		err = p.publish(e)
 		if err != nil {
 
 		}
 	}
 }
 
-func (p *Publisher) parseResponse(resp string) (*shureEvent, error) {
+func (p *EventPublisher) parseResponse(resp string) (*event.ShureEvent, error) {
 	re := regexp.MustCompile(`REP (\d)`)
 	channel := re.FindStringSubmatch(resp)
 	if len(channel) == 0 {
@@ -61,23 +62,23 @@ func (p *Publisher) parseResponse(resp string) (*shureEvent, error) {
 	}
 	deviceID := fmt.Sprintf("%s-MIC%s", p.RoomID, channel[1])
 
-	event := &events.Event{
+	hubEvent := &events.Event{
 		TargetDevice: events.GenerateBasicDeviceInfo(deviceID),
 	}
 
-	e := &shureEvent{
+	e := &event.ShureEvent{
 		DeviceName: fmt.Sprintf("%s-MIC%s", p.RoomID, channel[1]),
-		E:          event,
+		E:          hubEvent,
 	}
 	e.SetEventType(resp)
-	if e.Type == unknown {
+	if e.Type == event.Unknown {
 		return nil, fmt.Errorf("unknown event type")
 	}
 
 	return e, nil
 }
 
-func (p *Publisher) publish(event *shureEvent) error {
+func (p *EventPublisher) publish(event *event.ShureEvent) error {
 	event.E.GeneratingSystem = event.E.TargetDevice.DeviceID
 	event.E.Timestamp = time.Now()
 	event.E.AffectedRoom = events.GenerateBasicRoomInfo(p.RoomID)

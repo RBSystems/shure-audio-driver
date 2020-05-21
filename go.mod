@@ -4,3 +4,4 @@ go 1.14
 
 require github.com/byuoitav/shure-audio-library v0.0.0-20200519201958-a4e424999406
 
+replace github.com/byuoitav/shure-audio-library => ../shure-audio-library

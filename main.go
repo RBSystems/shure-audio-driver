@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/byuoitav/shure-audio-driver/db"
-	"github.com/byuoitav/shure-audio-driver/event"
+	"github.com/byuoitav/shure-audio-driver/publish"
 	"github.com/byuoitav/shure-audio-library"
 )
 
@@ -28,7 +28,7 @@ func main() {
 
 	}
 
-	pub := &event.Publisher{
+	pub := &publish.EventPublisher{
 		RoomID:     roomID,
 		HubAddress: os.Getenv("HUB_ADDRESS"),
 		RoomSys:    os.Getenv("ROOM_SYSTEM"),
@@ -50,7 +50,7 @@ func main() {
 	fmt.Printf("there are no receivers in this room\n")
 }
 
-func readEvents(address string, pub *event.Publisher) error {
+func readEvents(address string, pub *publish.EventPublisher) error {
 	// make a connection with address
 	control := &shure.AudioControl{
 		Address: address,
