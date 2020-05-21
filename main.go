@@ -31,11 +31,12 @@ func main() {
 	pub := &event.Publisher{
 		RoomID:     roomID,
 		HubAddress: os.Getenv("HUB_ADDRESS"),
+		RoomSys:    os.Getenv("ROOM_SYSTEM"),
 		RespCh:     make(chan string, 100),
 	}
 
 	// start waiting to publish events
-	go pub.HandleEvents()
+	go pub.PublishEvents()
 
 	if len(address) > 0 {
 		fmt.Println(address)
