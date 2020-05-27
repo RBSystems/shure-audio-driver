@@ -1,6 +1,7 @@
 package log
 
 import (
+	"fmt"
 	"log"
 
 	"go.uber.org/zap"
@@ -48,4 +49,27 @@ func StartLogger() {
 	L.Info("Zap logger started")
 
 	_ = L.Sync()
+}
+
+func SetLogLevel(level string) error {
+	switch level {
+	case "Debug":
+		fmt.Printf("\nSetting log level to *debug*\n\n")
+		Config.Level.SetLevel(zap.DebugLevel)
+	case "Info":
+		fmt.Printf("\nSetting log level to *info*\n\n")
+		Config.Level.SetLevel(zap.InfoLevel)
+	case "Warn":
+		fmt.Printf("\nSetting log level to *warn*\n\n")
+		Config.Level.SetLevel(zap.WarnLevel)
+	case "Error":
+		fmt.Printf("\nSetting log level to *error*\n\n")
+		Config.Level.SetLevel(zap.ErrorLevel)
+	case "Panic":
+		fmt.Printf("\nSetting log level to *panic*\n\n")
+		Config.Level.SetLevel(zap.PanicLevel)
+	default:
+		return fmt.Errorf("invalid log level: must be [1-4]")
+	}
+	return nil
 }

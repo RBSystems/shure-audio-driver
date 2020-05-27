@@ -10,11 +10,21 @@ import (
 	"github.com/byuoitav/shure-audio-driver/log"
 	"github.com/byuoitav/shure-audio-driver/publish"
 	"github.com/byuoitav/shure-audio-library"
+	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
 
 func main() {
 	log.StartLogger()
+
+	var logLevel string
+	pflag.StringVarP(&logLevel, "log-level", "l", "Info", "level of logging wanted. Debug, Info, Warn, Error, Panic")
+	pflag.Parse()
+
+	// set the initial log level
+	if err := log.SetLogLevel(logLevel); err != nil {
+		log.L.Fatal("unable to set log level", zap.Error(err), zap.String("got", logLevel))
+	}
 
 	// get receiver address from db
 	db := &db.Database{
