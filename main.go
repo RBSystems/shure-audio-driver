@@ -7,11 +7,15 @@ import (
 	"strings"
 
 	"github.com/byuoitav/shure-audio-driver/db"
+	"github.com/byuoitav/shure-audio-driver/log"
 	"github.com/byuoitav/shure-audio-driver/publish"
 	"github.com/byuoitav/shure-audio-library"
+	"go.uber.org/zap"
 )
 
 func main() {
+	log.StartLogger()
+
 	// get receiver address from db
 	db := &db.Database{
 		Address:  os.Getenv("DB_ADDRESS"),
@@ -25,7 +29,7 @@ func main() {
 
 	address, err := db.GetReceiverAddress(roomID)
 	if err != nil {
-
+		log.L.Fatal("failed to get receiver address", zap.Error(err))
 	}
 
 	pub := &publish.EventPublisher{
@@ -35,23 +39,25 @@ func main() {
 		RespCh:     make(chan string, 100),
 	}
 
+	err = pub.StartMessenger()
+	if err != nil {
+		log.L.Fatal("failure when building event hub messenger", zap.Error(err))
+	}
+
 	// start waiting to publish events
 	go pub.PublishEvents()
 
 	if len(address) > 0 {
-		fmt.Println(address)
-
 		err = readEvents(address, pub)
 		if err != nil {
-			fmt.Printf("failed to read events: %s\n", err.Error())
-			return
+			log.L.Fatal("Failure when connecting and reading events", zap.Error(err))
 		}
 	}
-	fmt.Printf("there are no receivers in this room\n")
+	log.L.Error("There are no receivers in this room. Stopping service...")
 }
 
 func readEvents(address string, pub *publish.EventPublisher) error {
-	// make a connection with address
+	log.L.Info("connecting to receiver", zap.String("address", address))
 	control := &shure.AudioControl{
 		Address: address,
 	}
@@ -61,14 +67,13 @@ func readEvents(address string, pub *publish.EventPublisher) error {
 		return err
 	}
 
+	log.L.Info("connected to receiver", zap.String("address", address))
 	for {
 		data, err := conn.ReadEvent()
 		if err == io.EOF {
-			fmt.Println("got an eof")
 			conn.Conn.Close()
 			conn, err = control.GetConnection()
-		}
-		if err != nil {
+		} else if err != nil {
 			return err
 		}
 

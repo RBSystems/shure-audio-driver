@@ -9,6 +9,8 @@ import (
 	"github.com/byuoitav/central-event-system/messenger"
 	"github.com/byuoitav/common/v2/events"
 	"github.com/byuoitav/shure-audio-driver/event"
+	"github.com/byuoitav/shure-audio-driver/log"
+	"go.uber.org/zap"
 )
 
 //EventPublisher receives device responses through a channel, parses them, then sends them on to the event hub
@@ -20,15 +22,19 @@ type EventPublisher struct {
 	msg        *messenger.Messenger
 }
 
-//PublishEvents blocks on the response channel until a new response arrives to be published
-func (p *EventPublisher) PublishEvents() {
+//StartMessenger will build the event messenger
+func (p *EventPublisher) StartMessenger() error {
 	// start the messenger
 	var err error
 	p.msg, err = messenger.BuildMessenger(p.HubAddress, base.Messenger, 1000)
 	if err != nil {
-
+		return err
 	}
+	return nil
+}
 
+//PublishEvents blocks on the response channel until a new response arrives to be published
+func (p *EventPublisher) PublishEvents() {
 	for {
 		go p.handle(<-p.RespCh)
 	}
@@ -41,14 +47,13 @@ func (p *EventPublisher) handle(resp string) {
 		return
 	}
 
-	//fill in event
 	e.FillEventInfo(resp)
 
-	// publish event
-	if e.E.Value != event.FLAG {
+	if e.E.Value != event.IGNORE {
+		log.L.Info("publishing event", zap.String("key", e.E.Key), zap.String("value", e.E.Value))
 		err = p.publish(e)
 		if err != nil {
-
+			log.L.Error("failed to publish event", zap.Error(err))
 		}
 	}
 }
@@ -67,8 +72,7 @@ func (p *EventPublisher) parseResponse(resp string) (*event.ShureEvent, error) {
 	}
 
 	e := &event.ShureEvent{
-		DeviceName: fmt.Sprintf("%s-MIC%s", p.RoomID, channel[1]),
-		E:          hubEvent,
+		E: hubEvent,
 	}
 	e.SetEventType(resp)
 	if e.Type == event.Unknown {
@@ -86,8 +90,6 @@ func (p *EventPublisher) publish(event *event.ShureEvent) error {
 	if len(p.RoomSys) > 0 {
 		event.E.AddToTags(events.RoomSystem)
 	}
-
-	// add error to tags? if necessary
 
 	p.msg.SendEvent(*event.E)
 	return nil

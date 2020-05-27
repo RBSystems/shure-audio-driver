@@ -1,12 +1,13 @@
 package event
 
 import (
-	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/byuoitav/common/v2/events"
+	"github.com/byuoitav/shure-audio-driver/log"
+	"go.uber.org/zap"
 )
 
 const (
@@ -24,13 +25,12 @@ const (
 	bCharge  = "BATT_CHARGE"
 	bBars    = "BATT_BARS"
 
-	FLAG = "ignored"
+	IGNORE = "ignored"
 )
 
 type ShureEvent struct {
-	Type       state
-	DeviceName string
-	E          *events.Event
+	Type state
+	E    *events.Event
 }
 
 func (e *ShureEvent) SetEventType(resp string) {
@@ -54,11 +54,13 @@ func (e *ShureEvent) FillEventInfo(resp string) {
 	} else if e.Type == Battery {
 		err = fillBattery(resp, e.E)
 	} else {
-		// this should never be reached
+		// type is unknown
+		e.E.Value = IGNORE
 	}
 
 	if err != nil {
-
+		e.E.Value = IGNORE
+		log.L.Error("failure when filling event info", zap.Error(err))
 	}
 }
 
@@ -73,7 +75,7 @@ func fillInterference(resp string, event *events.Event) error {
 		event.Value = infCritical
 		event.AddToTags(events.Error)
 	} else {
-		return fmt.Errorf("invalid interference response")
+		event.Value = IGNORE
 	}
 	return nil
 }
@@ -89,7 +91,6 @@ func fillPower(resp string, event *events.Event) error {
 		event.Value = "on"
 		event.AddToTags(events.StartUp)
 	}
-
 	return nil
 }
 
@@ -106,7 +107,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch batteryCycles {
 		case "65535":
-			event.Value = FLAG
+			event.Value = IGNORE
 		case "":
 			event.Value = "0"
 		default:
@@ -121,7 +122,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch runTime {
 		case "65535":
-			event.Value = FLAG
+			event.Value = IGNORE
 		case "65534":
 			event.Value = "calculating"
 		case "":
@@ -155,7 +156,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch percentage {
 		case 255:
-			event.Value = FLAG
+			event.Value = IGNORE
 		case 254:
 			event.Value = "calculating"
 		default:
@@ -175,7 +176,7 @@ func fillBattery(resp string, event *events.Event) error {
 
 		switch bars {
 		case 255:
-			event.Value = FLAG
+			event.Value = IGNORE
 		case 254:
 			event.Value = "calculating"
 		default:
@@ -183,7 +184,7 @@ func fillBattery(resp string, event *events.Event) error {
 		}
 
 	} else {
-		event.Value = FLAG
+		event.Value = IGNORE
 	}
 
 	return nil
