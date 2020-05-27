@@ -24,12 +24,12 @@ type EventPublisher struct {
 
 //StartMessenger will build the event messenger
 func (p *EventPublisher) StartMessenger() error {
-	// start the messenger
-	var err error
-	p.msg, err = messenger.BuildMessenger(p.HubAddress, base.Messenger, 1000)
+	msg, err := messenger.BuildMessenger(p.HubAddress, base.Messenger, 1000)
 	if err != nil {
 		return err
 	}
+
+	p.msg = msg
 	return nil
 }
 
@@ -41,7 +41,7 @@ func (p *EventPublisher) PublishEvents() {
 }
 
 func (p *EventPublisher) handle(resp string) {
-	e, err := p.parseResponse(resp)
+	e, resp, err := p.parseResponse(resp)
 	if err != nil {
 		// event is invalid, skip it
 		return
@@ -55,17 +55,20 @@ func (p *EventPublisher) handle(resp string) {
 		if err != nil {
 			log.L.Error("failed to publish event", zap.Error(err))
 		}
+	} else {
+		log.L.Info("ignoring event")
 	}
 }
 
-func (p *EventPublisher) parseResponse(resp string) (*event.ShureEvent, error) {
+func (p *EventPublisher) parseResponse(resp string) (*event.ShureEvent, string, error) {
 	re := regexp.MustCompile(`REP (\d)`)
 	channel := re.FindStringSubmatch(resp)
 	if len(channel) == 0 {
 		//no data
-		return nil, fmt.Errorf("ignore event")
+		return nil, resp, fmt.Errorf("ignore event")
 	}
 	deviceID := fmt.Sprintf("%s-MIC%s", p.RoomID, channel[1])
+	resp = re.ReplaceAllString(resp, "")
 
 	hubEvent := &events.Event{
 		TargetDevice: events.GenerateBasicDeviceInfo(deviceID),
@@ -76,10 +79,10 @@ func (p *EventPublisher) parseResponse(resp string) (*event.ShureEvent, error) {
 	}
 	e.SetEventType(resp)
 	if e.Type == event.Unknown {
-		return nil, fmt.Errorf("unknown event type")
+		return nil, resp, fmt.Errorf("unknown event type")
 	}
 
-	return e, nil
+	return e, resp, nil
 }
 
 func (p *EventPublisher) publish(event *event.ShureEvent) error {

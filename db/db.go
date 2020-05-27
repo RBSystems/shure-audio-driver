@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/byuoitav/shure-audio-driver/log"
+	"go.uber.org/zap"
 )
 
 type Database struct {
@@ -58,7 +61,7 @@ func (d *Database) GetReceiverAddress(roomID string) (string, error) {
 
 	//make request
 	var resp response
-	err = d.makeRequest("/devices/_find", "POST", "application/json", body, &resp)
+	err = d.makeRequest("devices/_find", "POST", "application/json", body, &resp)
 	if err != nil {
 		return "", err
 	}
@@ -83,6 +86,7 @@ func hasRole(id string, dev device) bool {
 
 func (d *Database) makeRequest(path, method, content string, body []byte, respBody interface{}) error {
 	url := fmt.Sprintf("%s/%s", d.Address, path)
+	log.L.Info("sending http request", zap.String("url", url))
 
 	req, err := http.NewRequest(method, url, bytes.NewReader(body))
 	if err != nil {
