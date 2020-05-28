@@ -1,15 +1,17 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"io"
+	"net/http"
 	"os"
 	"strings"
 
 	"github.com/byuoitav/shure-audio-driver/db"
+	"github.com/byuoitav/shure-audio-driver/handlers"
 	"github.com/byuoitav/shure-audio-driver/log"
 	"github.com/byuoitav/shure-audio-driver/publish"
-	"github.com/byuoitav/shure-audio-library"
+	"github.com/labstack/echo"
 	"github.com/spf13/pflag"
 	"go.uber.org/zap"
 )
@@ -17,7 +19,9 @@ import (
 func main() {
 	log.StartLogger()
 
+	var port int
 	var logLevel string
+	pflag.IntVarP(&port, "port", "p", 8013, "port to run the server on")
 	pflag.StringVarP(&logLevel, "log-level", "l", "Info", "level of logging wanted. Debug, Info, Warn, Error, Panic")
 	pflag.Parse()
 
@@ -49,45 +53,17 @@ func main() {
 		RespCh:     make(chan string, 100),
 	}
 
-	err = pub.StartMessenger()
-	if err != nil {
-		log.L.Fatal("failure when building event hub messenger", zap.Error(err))
-	}
+	go monitorEvents(roomID, address, pub)
 
-	// start waiting to publish events
-	go pub.PublishEvents()
+	// build echo server
+	e := echo.New()
 
-	if len(address) > 0 {
-		err = readEvents(address, pub)
-		if err != nil {
-			log.L.Fatal("Failure when connecting and reading events", zap.Error(err))
-		}
-	}
-	log.L.Error("There are no receivers in this room. Stopping service...")
-}
+	e.GET("/:channel/battery/:format", handlers.GetBattery)
+	e.GET("/:channel/power", handlers.GetPower)
 
-func readEvents(address string, pub *publish.EventPublisher) error {
-	log.L.Info("connecting to receiver", zap.String("address", address))
-	control := &shure.AudioControl{
-		Address: address,
-	}
-
-	conn, err := control.GetConnection()
-	if err != nil {
-		return err
-	}
-
-	log.L.Info("connected to receiver", zap.String("address", address))
-	for {
-		data, err := conn.ReadEvent()
-		if err == io.EOF {
-			conn.Conn.Close()
-			conn, err = control.GetConnection()
-		} else if err != nil {
-			return err
-		}
-
-		//send event to be published
-		pub.RespCh <- data
+	addr := fmt.Sprintf(":%d", port)
+	err = e.Start(addr)
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.L.Fatal("failed to start server", zap.Error(err))
 	}
 }

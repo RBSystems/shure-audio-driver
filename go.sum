@@ -3,6 +3,10 @@ github.com/byuoitav/central-event-system v0.0.0-20200121172633-64fd9d467249 h1:L
 github.com/byuoitav/central-event-system v0.0.0-20200121172633-64fd9d467249/go.mod h1:+KCvx75wISCCkCrgIWRdlJxRXlA2yxQvR4HHgU/TdpU=
 github.com/byuoitav/common v0.0.0-20200521193927-1fdf4e0a4271 h1:3bUfk879CvOFb+HDPugqk0GFy7oyJDU7t/r9zC2c7j8=
 github.com/byuoitav/common v0.0.0-20200521193927-1fdf4e0a4271/go.mod h1:YTDTFEmez7HU3oyCIWjU3RfQ/P6v24LEzH5YUebph7I=
+github.com/byuoitav/shure-audio-library v0.0.0-20200519201958-a4e424999406 h1:u6V9pIGHRKqeJ2vcnPTjNPxbsggb74s3VjVt239V+vo=
+github.com/byuoitav/shure-audio-library v0.0.0-20200519201958-a4e424999406/go.mod h1:Qb2rlbB1lHmyfTBZIkAE9Lk69NiB7cW5fpYYhWz+nuQ=
+github.com/byuoitav/shure-audio-library v0.0.0-20200527215631-e0067987a541 h1:LCURmHbUQgZImijw3qHGiu7nzHtW7ssoPiBUlnlBSFU=
+github.com/byuoitav/shure-audio-library v0.0.0-20200527215631-e0067987a541/go.mod h1:NMM605DPcN6LCiiuA716pfRv+hLHBeP30yYaXa3Zwo0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
@@ -14,7 +18,6 @@ github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+o
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
-github.com/labstack/echo v1.4.4 h1:1bEiBNeGSUKxcPDGfZ/7IgdhJJZx8wV/pICJh4W2NJI=
 github.com/labstack/echo v3.3.10+incompatible h1:pGRcYk231ExFAyoAjAfD85kQzRJCRI8bbnE7CX5OEgg=
 github.com/labstack/echo v3.3.10+incompatible/go.mod h1:0INS7j/VjnFxD4E2wkz67b8cVwCLbBmJyDaka6Cmk1s=
 github.com/labstack/gommon v0.3.0 h1:JEeO0bvc78PKdyHxloTKiF8BD5iGrH8T6MSeGvSgob0=

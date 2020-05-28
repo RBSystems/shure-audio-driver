@@ -90,9 +90,9 @@ func (p *EventPublisher) publish(event *event.ShureEvent) error {
 	event.E.Timestamp = time.Now()
 	event.E.AffectedRoom = events.GenerateBasicRoomInfo(p.RoomID)
 
-	if len(p.RoomSys) > 0 {
-		event.E.AddToTags(events.RoomSystem)
-	}
+	// if len(p.RoomSys) > 0 {
+	// 	event.E.AddToTags(events.RoomSystem)
+	// }
 
 	p.msg.SendEvent(*event.E)
 	return nil
