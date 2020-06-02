@@ -10,6 +10,10 @@ import (
 	"github.com/byuoitav/shure-audio-library"
 )
 
+type command struct {
+	Message string `json:"message"`
+}
+
 func runBatteryCommand(channel, format string) (string, error) {
 	ch, err := strconv.Atoi(channel)
 	if err != nil {
@@ -18,7 +22,7 @@ func runBatteryCommand(channel, format string) (string, error) {
 
 	address, err := getAddress()
 	if err != nil {
-		return "", fmt.Errorf("failed to run power command: %s", err.Error())
+		return "", fmt.Errorf("failed to get receiver address: %s", err.Error())
 	}
 
 	control := &shure.AudioControl{
@@ -57,7 +61,7 @@ func runPowerCommand(channel string) (string, error) {
 
 	address, err := getAddress()
 	if err != nil {
-		return "", fmt.Errorf("failed to run power command: %s", err.Error())
+		return "", fmt.Errorf("failed to get receiver address: %s", err.Error())
 	}
 
 	control := &shure.AudioControl{
@@ -72,6 +76,29 @@ func runPowerCommand(channel string) (string, error) {
 	resp, err := conn.GetPowerStatus(ch)
 	if err != nil {
 		return "", fmt.Errorf("failed to get power status: %s", err.Error())
+	}
+
+	return resp, nil
+}
+
+func sendRawCommand(cmd command) (string, error) {
+	address, err := getAddress()
+	if err != nil {
+		return "", fmt.Errorf("failed to get address: %s", err.Error())
+	}
+
+	control := &shure.AudioControl{
+		Address: address,
+	}
+
+	conn, err := control.GetConnection()
+	if err != nil {
+		return "", fmt.Errorf("failed to open connection to receiver: %s", err.Error())
+	}
+
+	resp, err := conn.SendCommand(cmd.Message)
+	if err != nil {
+		return "", fmt.Errorf("failed to send command: %s", err.Error())
 	}
 
 	return resp, nil

@@ -36,3 +36,20 @@ func GetPower(c echo.Context) error {
 	log.L.Info("got power status", zap.String("channel", channel), zap.String("status", resp))
 	return c.JSON(http.StatusOK, resp)
 }
+
+func SendCommand(c echo.Context) error {
+	var cmd command
+	err := c.Bind(&cmd)
+	if err != nil {
+		log.L.Error("failed to send command, could not unmarshal response body", zap.Error(err))
+		return c.String(http.StatusInternalServerError, "incorrect format for request body")
+	}
+
+	resp, err := sendRawCommand(cmd)
+	if err != nil {
+		log.L.Error("failed to send command", zap.Error(err))
+		return c.String(http.StatusInternalServerError, "failed to send command")
+	}
+
+	return c.JSON(http.StatusOK, resp)
+}

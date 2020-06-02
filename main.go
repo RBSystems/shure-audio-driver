@@ -61,6 +61,8 @@ func main() {
 	e.GET("/:channel/battery/:format", handlers.GetBattery)
 	e.GET("/:channel/power", handlers.GetPower)
 
+	e.POST("/command", handlers.SendCommand)
+
 	addr := fmt.Sprintf(":%d", port)
 	err = e.Start(addr)
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
